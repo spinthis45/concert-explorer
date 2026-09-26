@@ -1109,8 +1109,13 @@
     q = q.toLowerCase();
     return (s.openers||[]).filter(function(o){ return o.toLowerCase().indexOf(q) !== -1; });
   }
+  function dateSortKey(s){
+    // Year-only entries ('1994') sort as Jan 1 of that year so they still
+    // land in the right chronological neighborhood among full dates.
+    return s.date.length === 4 ? s.date + '-01-01' : s.date;
+  }
   function currentList(){
-    return SHOWS.filter(function(s){
+    var items = SHOWS.filter(function(s){
       if(state.view.type === 'artist' && s.headliner !== state.view.value) return false;
       if(state.view.type === 'venue' && s.vkey !== state.view.value) return false;
       if(state.year !== null && s.year !== state.year) return false;
@@ -1119,6 +1124,13 @@
       if(!matchesQuery(s, state.query)) return false;
       return true;
     });
+    items.sort(function(a,b){
+      var ka = dateSortKey(a), kb = dateSortKey(b);
+      if(ka < kb) return -1;
+      if(ka > kb) return 1;
+      return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+    });
+    return items;
   }
 
   /* ---------- list ---------- */
